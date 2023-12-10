@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "795824821815",
+    "project_id": "taskvault-f5054",
+    "storage_bucket": "taskvault-f5054.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:795824821815:android:e928de1b003a4d1c8091b2",
+        "android_client_info": {
+          "package_name": "com.example.taskvault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDbmlQGT9ftYewYjnuymFmtToPfto_uSM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
