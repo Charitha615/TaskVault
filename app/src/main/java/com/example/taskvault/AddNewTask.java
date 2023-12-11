@@ -1,9 +1,12 @@
 package com.example.taskvault;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -79,6 +82,7 @@ public class AddNewTask extends BottomSheetDialogFragment {
             mTaskEdit.setText(task);
             setDueDate.setText(dueDateUpdate);
 
+            assert task != null;
             if (task.length() > 0){
                 mSaveBtn.setEnabled(false);
                 mSaveBtn.setBackgroundColor(Color.GRAY);
@@ -136,6 +140,7 @@ public class AddNewTask extends BottomSheetDialogFragment {
             @Override
             public void onClick(View v) {
 
+
                 String task = mTaskEdit.getText().toString();
 
                 if (finalIsUpdate){
@@ -147,12 +152,15 @@ public class AddNewTask extends BottomSheetDialogFragment {
                     if (task.isEmpty()) {
                         Toast.makeText(context, "Empty task not Allowed !!", Toast.LENGTH_SHORT).show();
                     } else {
+                        SharedPreferences sharedPreferences = requireContext().getSharedPreferences("MyPrefs", MODE_PRIVATE);
+                        String randomUserId = sharedPreferences.getString("randomUserId", "");
 
                         Map<String, Object> taskMap = new HashMap<>();
 
                         taskMap.put("task", task);
                         taskMap.put("due", dueDate);
                         taskMap.put("status", 0);
+                        taskMap.put("id", randomUserId);
                         taskMap.put("time", FieldValue.serverTimestamp());
 
                         firestore.collection("task").add(taskMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {

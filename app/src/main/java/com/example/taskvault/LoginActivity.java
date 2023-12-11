@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -85,22 +86,31 @@ public class LoginActivity extends AppCompatActivity {
         String userUsername = loginUsername.getText().toString().trim();
         String userPassword = loginPassword.getText().toString().trim();
 
-        Log.d("LoginActivity", "Checking user: " + userUsername);
+        Log.d("LoginActivity", "Checking userUsername: " + userUsername);
+        Log.d("LoginActivity", "Checking userPassword: " + userPassword);
         reference.child("user_registration").addListenerForSingleValueEvent(new ValueEventListener() {
 
 
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     HelperClass user = userSnapshot.getValue(HelperClass.class);
-
-                    if (user != null && user.getUsername().equals(userUsername) && user.getPassword().equals(userPassword)) {
+                    assert user != null;
+//                    Log.d("LoginActivity", "user details : " + user);
+                    if (user.getUsername().equals(userUsername) && user.getPassword().equals(userPassword)) {
                         // Login successful
-                        Log.d("LoginActivity", "Success login");
 
                         String name = user.getName();
                         String email = user.getEmail();
                         String username = user.getUsername();
+                        String randomUserId = userSnapshot.getKey();
+
+
+                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("randomUserId", randomUserId);
+                        editor.apply();
+
 
                         // Pass this data to the MainActivity using Intent
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

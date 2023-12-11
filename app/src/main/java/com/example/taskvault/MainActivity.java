@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.example.taskvault.Adapter.ToDoAdapter;
@@ -40,6 +42,11 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        String randomUserId = sharedPreferences.getString("randomUserId", "");
+
+        Log.d("activity_main", "randomUserId details Main: " + randomUserId);
+
         recyclerView = findViewById(R.id.recycerlview);
         mFab = findViewById(R.id.floatingActionButton);
         firestore = FirebaseFirestore.getInstance();
@@ -62,25 +69,43 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
         showData();
         recyclerView.setAdapter(adapter);
     }
-    private void showData(){
-        query = firestore.collection("task").orderBy("time" , Query.Direction.DESCENDING);
+    private void showData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        String randomUserId = sharedPreferences.getString("randomUserId", "");
 
-        listenerRegistration = query.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                for (DocumentChange documentChange : value.getDocumentChanges()){
-                    if (documentChange.getType() == DocumentChange.Type.ADDED){
-                        String id = documentChange.getDocument().getId();
-                        ToDoModel toDoModel = documentChange.getDocument().toObject(ToDoModel.class).withId(id);
-                        mList.add(toDoModel);
-                        adapter.notifyDataSetChanged();
+        if (randomUserId != null && !randomUserId.isEmpty()) {
+            query = firestore.collection("task")
+                    .whereEqualTo("id", randomUserId)  // Filter tasks by user ID
+                    .orderBy("time", Query.Direction.DESCENDING);
+
+            listenerRegistration = query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+                @Override
+                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                    if (value != null) {
+                        for (DocumentChange documentChange : value.getDocumentChanges()) {
+                            if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                                String id = documentChange.getDocument().getId();
+                                ToDoModel toDoModel = documentChange.getDocument().toObject(ToDoModel.class).withId(id);
+                                mList.add(toDoModel);
+                                adapter.notifyDataSetChanged();
+                            }
+                        }
+                    }
+
+                    // Note: Check for errors and handle them accordingly
+
+                    // Remove the snapshot listener when done
+                    if (listenerRegistration != null) {
+                        listenerRegistration.remove();
                     }
                 }
-                listenerRegistration.remove();
-
-            }
-        });
+            });
+        } else {
+            // Handle the case where randomUserId is null or empty
+            // You may want to show an error message or handle it in a way that makes sense for your app
+        }
     }
+
 
     @Override
     public void onDialogClose(DialogInterface dialogInterface) {
