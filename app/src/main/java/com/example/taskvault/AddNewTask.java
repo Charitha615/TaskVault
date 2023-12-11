@@ -40,12 +40,12 @@ public class AddNewTask extends BottomSheetDialogFragment {
     private TextView setDueDate;
     private EditText mTaskEdit;
     private Button mSaveBtn;
-
     private FirebaseFirestore firestore;
     private Context context;
     private String dueDate = "";
     private String id = "";
     private String dueDateUpdate = "";
+
     public static AddNewTask newInstance(){
         return new AddNewTask();
     }
@@ -54,6 +54,7 @@ public class AddNewTask extends BottomSheetDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.add_new_task , container , false);
+
     }
 
     @Override
@@ -131,10 +132,10 @@ public class AddNewTask extends BottomSheetDialogFragment {
         });
 
         boolean finalIsUpdate = isUpdate;
-
         mSaveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String task = mTaskEdit.getText().toString();
 
                 if (finalIsUpdate){
