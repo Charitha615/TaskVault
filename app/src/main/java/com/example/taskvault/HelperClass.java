@@ -3,17 +3,18 @@ package com.example.taskvault;
 public class HelperClass {
     String name;
     String email;
-    String password;
     String username;
+    String password;
+
 
     public HelperClass() {
     }
 
-    public HelperClass(String name, String email, String password, String username) {
+    public HelperClass(String name, String email, String username, String password) {
         this.name = name;
         this.email = email;
-        this.password = password;
         this.username = username;
+        this.password = password;
     }
 
     public String getName() {
@@ -32,19 +33,19 @@ public class HelperClass {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
