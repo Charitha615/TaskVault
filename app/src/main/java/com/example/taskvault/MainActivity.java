@@ -1,5 +1,6 @@
 package com.example.taskvault;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,8 +30,18 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.os.AsyncTask;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements onDialogCloseListner{
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class MainActivity extends AppCompatActivity implements onDialogCloseListner {
 
     private RecyclerView recyclerView;
     private FloatingActionButton mFab;
@@ -42,12 +53,20 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
 
     private Button logout_btn;
 
+    private static final String WEATHER_API_KEY = "fb63096d03780511d88f4194f0877971";
+    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather";
+
+    private TextView weatherTextView;
+    private TextView Weather_Info;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        weatherTextView = findViewById(R.id.wetherText);
+        Weather_Info = findViewById(R.id.Weather_Info);
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         String randomUserId = sharedPreferences.getString("randomUserId", "");
@@ -61,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-
 
         logout_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
             }
         });
 
-
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,9 +125,82 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new TouchHelper(adapter));
         itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        // Call a method to get weather information
+        getWeatherInfo("London"); // Replace with the desired city
+
         showData();
         recyclerView.setAdapter(adapter);
     }
+
+    private void getWeatherInfo(String city) {
+        new WeatherTask().execute(city);
+    }
+
+    // AsyncTask to fetch weather information in the background
+    private class WeatherTask extends AsyncTask<String, Void, String> {
+
+        @Nullable
+        @Override
+        protected String doInBackground(@NonNull String... params) {
+            String city = params[0];
+            try {
+                URL url = new URL("https://api.openweathermap.org/data/2.5/weather?q=Colombo,srilanka&APPID=fb63096d03780511d88f4194f0877971");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder json = new StringBuilder(1024);
+                String tmp;
+
+                while ((tmp = reader.readLine()) != null) {
+                    json.append(tmp).append("\n");
+                }
+
+                reader.close();
+                return json.toString();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @SuppressLint("SetTextI18n")
+        @Override
+        protected void onPostExecute(String json) {
+            if (json != null) {
+                try {
+                    JSONObject data = new JSONObject(json);
+                    double temperatureKelvin = data.getJSONObject("main").getDouble("temp");
+                    double temperatureCelsius = temperatureKelvin - 273.15;
+                    String description = data.getJSONArray("weather").getJSONObject(0).getString("description");
+                    String cityName = data.getString("name");
+                    String country = data.getJSONObject("sys").getString("country");
+
+                    // Format the temperature with two decimal places
+                    @SuppressLint("DefaultLocale") String formattedTemperature = String.format("%.2f", temperatureCelsius);
+
+                    // Create a detailed weather information string
+                    String weatherDetails = "Temperature: " + formattedTemperature + "°C\n"
+                            + "Description: " + description;
+
+                    // Log the weather information
+                    Log.d("WeatherInfo", weatherDetails);
+
+                    // Update the TextView with the detailed weather information
+                    weatherTextView.setText(weatherDetails);
+                    Weather_Info.setText(cityName +","+ country+" Weather Info");
+
+                    // You might want to update your UI with the weather information here
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+
     private void showData() {
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         String randomUserId = sharedPreferences.getString("randomUserId", "");
@@ -151,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
             // You may want to show an error message or handle it in a way that makes sense for your app
         }
     }
-
 
     @Override
     public void onDialogClose(DialogInterface dialogInterface) {
