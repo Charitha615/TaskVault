@@ -24,6 +24,10 @@ public class LoginActivity extends AppCompatActivity {
     Button loginButton;
     TextView signupRedirectText;
 
+    public static final String ERROR_EMPTY_USERNAME = "Username cannot be empty";
+    public static final String ERROR_EMPTY_PASSWORD = "Password cannot be empty";
+    public static final String ERROR_INVALID_CREDENTIALS = "Invalid username or password";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,9 +41,19 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!validateUsername() | !validatePassword()){
+                String usernameError = validateUsername();
+                String passwordError = validatePassword();
 
-                } else {
+                if (usernameError != null) {
+                    loginUsername.setError(usernameError);
+                }
+
+                if (passwordError != null) {
+                    loginPassword.setError(passwordError);
+                }
+
+                if (usernameError == null && passwordError == null) {
+                    // Validation successful, proceed with login
                     checkUser();
                 }
             }
@@ -54,63 +68,53 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public Boolean validateUsername(){
+    public String validateUsername() {
         String val = loginUsername.getText().toString();
-        if (val.isEmpty()){
-            loginUsername.setError("Username cannot be empty");
-            return false;
+        if (val.isEmpty()) {
+            return ERROR_EMPTY_USERNAME;
         } else {
-            loginUsername.setError(null);
-            return true;
+            return null; // No error
         }
     }
 
-    public Boolean validatePassword(){
+    public String validatePassword() {
         String val = loginPassword.getText().toString();
-        if (val.isEmpty()){
-            loginPassword.setError("Password cannot be empty");
-            return false;
+        if (val.isEmpty()) {
+            return ERROR_EMPTY_PASSWORD;
         } else {
-            loginPassword.setError(null);
-            return true;
+            return null; // No error
         }
     }
 
-    public void checkUser(){
-
+    public void checkUser() {
         // Initialize Firebase
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-// Replace "your-database-reference" with the actual reference you want to use
         DatabaseReference reference = database.getReference("users");
 
         String userUsername = loginUsername.getText().toString().trim();
         String userPassword = loginPassword.getText().toString().trim();
 
-        Log.d("LoginActivity", "Checking userUsername: " + userUsername);
-        Log.d("LoginActivity", "Checking userPassword: " + userPassword);
         reference.child("user_registration").addListenerForSingleValueEvent(new ValueEventListener() {
-
-
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                boolean loginSuccessful = false;
+
                 for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
                     HelperClass user = userSnapshot.getValue(HelperClass.class);
-                    assert user != null;
-//                    Log.d("LoginActivity", "user details : " + user);
-                    if (user.getUsername().equals(userUsername) && user.getPassword().equals(userPassword)) {
+
+                    if (user != null && user.getUsername().equals(userUsername) && user.getPassword().equals(userPassword)) {
                         // Login successful
+                        loginSuccessful = true;
 
                         String name = user.getName();
                         String email = user.getEmail();
                         String username = user.getUsername();
                         String randomUserId = userSnapshot.getKey();
 
-
                         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("randomUserId", randomUserId);
                         editor.apply();
-
 
                         // Pass this data to the MainActivity using Intent
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -121,37 +125,18 @@ public class LoginActivity extends AppCompatActivity {
                         finish(); // Finish the LoginActivity to prevent going back to it with the back button
                         break; // Exit the loop since we found a match
                     }
-                    else
-                    {
-                        Log.d("LoginActivity", "not login");
-                    }
+                }
+
+                if (!loginSuccessful) {
+                    // Display an error message for invalid credentials
+                    loginPassword.setError(ERROR_INVALID_CREDENTIALS);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                // Handle onCancelled
             }
         });
-    }
-
-    private void printDatabaseStructure(DataSnapshot snapshot, int depth) {
-        Log.d("SS","Hello");
-        for (DataSnapshot childSnapshot : snapshot.getChildren()) {
-            StringBuilder indentation = new StringBuilder();
-            for (int i = 0; i < depth; i++) {
-                indentation.append("  "); // Use two spaces for each level of indentation
-            }
-
-            String key = childSnapshot.getKey();
-            Object value = childSnapshot.getValue();
-
-            Log.d("DatabaseStructure", indentation + key + ": " + value);
-
-            if (childSnapshot.hasChildren()) {
-                printDatabaseStructure(childSnapshot, depth + 1);
-            }
-        }
-        Log.d("SS","asdasdasdsad");
     }
 }

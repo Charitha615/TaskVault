@@ -17,6 +17,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -81,10 +82,16 @@ public class SignupActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(signupName.getText().toString())) {
             signupName.setError("Please enter your name");
             return false;
+        } else if (!isAlpha(signupName.getText().toString())) {
+            signupName.setError("Name should contain only alphabetic characters");
+            return false;
         }
 
         if (TextUtils.isEmpty(signupEmail.getText().toString())) {
             signupEmail.setError("Please enter your email");
+            return false;
+        } else if (!isValidEmail(signupEmail.getText().toString())) {
+            signupEmail.setError("Please enter a valid email address");
             return false;
         }
 
@@ -99,5 +106,17 @@ public class SignupActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    private boolean isValidEmail(String email) {
+        // Add your email validation logic here, for example using a regular expression
+        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$";
+        Pattern pattern = Pattern.compile(emailRegex);
+        return pattern.matcher(email).matches();
+    }
+
+    private boolean isAlpha(String name) {
+        // Check if the string contains only alphabetic characters
+        return name.matches("[a-zA-Z]+");
     }
 }

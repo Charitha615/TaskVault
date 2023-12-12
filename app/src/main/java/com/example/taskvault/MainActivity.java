@@ -115,12 +115,16 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         String randomUserId = sharedPreferences.getString("randomUserId", "");
 
-        if (randomUserId != null && !randomUserId.isEmpty()) {
+        Log.d("randomUserId", "randomUserId details Main: " + randomUserId);
+        if (!randomUserId.isEmpty()) {
             query = firestore.collection("task")
                     .whereEqualTo("id", randomUserId)  // Filter tasks by user ID
                     .orderBy("time", Query.Direction.DESCENDING);
 
+            Log.d("query", "randomUserId details Main: " + query);
+
             listenerRegistration = query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                     if (value != null) {
