@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity implements onDialogCloseList
 
     private Button logout_btn;
 
-    private static final String WEATHER_API_KEY = "fb63096d03780511d88f4194f0877971";
-    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather";
+//    private static final String WEATHER_API_KEY = "fb63096d03780511d88f4194f0877971";
+//    private static final String WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather";
 
     private TextView weatherTextView;
     private TextView Weather_Info;
